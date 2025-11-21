@@ -38,8 +38,8 @@ class IthacaSocker:
 
     def __on_message(self, ws, message):
         """Handle incoming WebSocket messages."""
+        data = json.loads(message)
         try:
-            data = json.loads(message)
             match data.get("responseType"):
                 case "AUCTION_STARTED":
                     self.output(f"{datetime.now()} - 🔨 AUCTION: Started")
@@ -53,10 +53,14 @@ class IthacaSocker:
 
                     match order.orderStatus:
                         case "CANCELED":
-                            pass
-                            self.output(
-                                f"{datetime.now()} - ❌ ORDER: Canceled order {order.orderId} | {order.details[0].side:<4} | {order.details[0].remainingQty:4}x {order.details[0].expiry:8} {order.details[0].contractDto.payoff:10} {order.details[0].contractDto.economics.strike:8} @ {order.netPrice:7} for {order.details[0].avgPrice:>10}"
-                            )
+                            try:
+                                self.output(
+                                    f"{datetime.now()} - ❌ ORDER: Canceled order {order.orderId} | {order.details[0].side:<4} | {order.details[0].remainingQty:4}x {order.details[0].expiry:8} {order.details[0].contractDto.payoff:10} {order.details[0].contractDto.economics.strike:8} @ {order.netPrice:7} for {order.details[0].avgPrice:>10}"
+                                )
+                            except:
+                                self.output(
+                                    f"{datetime.now()} - ❌ ORDER: Canceled order {order.orderId}"
+                                )
                         case "CANCEL_REJECTED":
                             self.output(f"{datetime.now()} - 🔴 ORDER: Cancel Rejected")
                         case "FILLED":
@@ -66,19 +70,21 @@ class IthacaSocker:
                                 f"{datetime.now()} - 🟡 ORDER: Partially Filled"
                             )
                         case "NEW":
-                            pass
-                            self.output(
-                                f"{datetime.now()} - 💼 TRADE: {order.orderId} | {order.details[0].side:<4} | {order.details[0].remainingQty:4} {order.details[0].expiry:<8}x {order.details[0].contractDto.payoff:10} {order.details[0].contractDto.economics.strike:8} @ {order.netPrice:7} for {order.details[0].avgPrice:>10}"
-                            )
+                            try:
+                                self.output(
+                                    f"{datetime.now()} - 💼 TRADE: {order.orderId} | {order.details[0].side:<4} | {order.details[0].remainingQty:4}x {order.details[0].expiry:<8} {order.details[0].contractDto.payoff:10} {order.details[0].contractDto.economics.strike:8} @ {order.netPrice:7} for {order.details[0].avgPrice:>10}"
+                                )
+                            except:
+                                self.output(
+                                    f"{datetime.now()} - 💼 TRADE: {order.orderId} | {order.details[0].side:<4} | {order.details[0].remainingQty:4}x {order.details[0].expiry:<8} {order.details[0].contractDto.payoff:10} {order.details[0].contractDto.economics.strike if order.details[0].contractDto.economics.strike else 0:8} @ {order.netPrice:7} for {order.details[0].avgPrice:>10}"
+                                )
 
                         case "REJECTED":
                             self.output(
                                 f"{datetime.now()} - ❌ ORDER: Rejected | Reason: {order.ordRejReason}"
                             )
                         case _:
-                            self.output(
-                                f"{datetime.now()} - ℹ️ ORDER: {order.orderStatus}"
-                            )
+                            self.output(f"{datetime.now()} - ℹ️ ORDER:")
 
         except Exception as e:
             self.output(f"Error processing WebSocket message: {e}")

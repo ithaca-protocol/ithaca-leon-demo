@@ -1,29 +1,10 @@
 import json
-import os
 
 import pandas as pd
-from dotenv import load_dotenv
 from ithaca import IthacaSDK
 
 from models import OrderModel
-
-load_dotenv()
-
-
-def init_sdk() -> IthacaSDK:
-    sdk = IthacaSDK(
-        api_endpoint="https://app.canary.ithacanoemon.tech/api/v1",
-        ws_endpoint="wss://app.canary.ithacanoemon.tech/wss",
-        graphql_endpoint="x",
-        rpc_endpoint=os.getenv("RPC_ENDPOINT"),
-        private_key=os.getenv("PRIVATE_KEY"),
-    )
-
-    print("-" * 50)
-    print("Logging in to Ithaca Backend...")
-    is_logged_in = sdk.auth.login()
-    print(is_logged_in)
-    return sdk
+from utils import init_sdk
 
 
 def get_system_info(sdk: IthacaSDK):
@@ -46,7 +27,9 @@ def fetch_contracts(sdk: IthacaSDK):
 
     contracts_df = sdk.protocol.contract_list_df()
     contracts_df = contracts_df[contracts_df["pair"] == "WBTC/USDC"]
+    print(contracts_df.payoff.unique())
     print(f"Found {contracts_df.shape[0]} contracts")
+    print(contracts_df[contracts_df["payoff"] == "Spot"])
 
 
 def send_order(sdk: IthacaSDK, payoff, expiry, strike, price, side, quantity):
@@ -56,6 +39,7 @@ def send_order(sdk: IthacaSDK, payoff, expiry, strike, price, side, quantity):
     put_contract_id = sdk.protocol.find_contract(payoff, expiry, strike)
 
     legs = [(put_contract_id, side, quantity)]
+    print(legs, price)
 
     order_response = sdk.orders.new_order(legs=legs, price=price)
     print(order_response)
@@ -100,26 +84,26 @@ def fetch_positions(sdk: IthacaSDK):
 if __name__ == "__main__":
     sdk = init_sdk()
     # get_system_info(sdk)
-    # fetch_contracts(sdk)
+    fetch_contracts(sdk)
 
-    get_fundlock_balances(sdk)
+    # get_fundlock_balances(sdk)
 
-    side = "BUY"
-    quantity = 0.0001
-    payoff = "Put"
-    expiry = "2025-11-28"
-    strike = 88000
-    price = sdk.calc_server.get_price(payoff, expiry, strike, currency="BTC")
-    print(f"Calculated price from server: {price}")
-    price *= quantity
-    print(f"Unit price: {price}")
+    # side = "BUY"
+    # quantity = 0.0001
+    # payoff = "Put"
+    # expiry = "2025-11-28"
+    # strike = 88000
+    # price = sdk.calc_server.get_price(payoff, expiry, strike, currency="BTC")
+    # print(f"Calculated price from server: {price}")
+    # price *= quantity
+    # print(f"Unit price: {price}")
 
-    put_contract_id = sdk.protocol.find_contract(payoff, expiry, strike)
+    # put_contract_id = sdk.protocol.find_contract(payoff, expiry, strike)
 
-    legs = [(put_contract_id, side, quantity)]
+    # legs = [(put_contract_id, side, quantity)]
 
-    send_order(sdk, payoff, expiry, strike, price, side, quantity)
+    # send_order(sdk, payoff, expiry, strike, price, side, quantity)
 
-    fetch_orders(sdk)
+    # fetch_orders(sdk)
 
-    fetch_positions(sdk)
+    # fetch_positions(sdk)

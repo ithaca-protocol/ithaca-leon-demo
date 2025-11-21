@@ -7,14 +7,24 @@ Initial setup
 - Add wallet and private key to .env
 
 
-Run the websocket connection
+### Websocket connection
+
+Order notifications (NEW, CANCELLED, FILLED) are send via a websocket connection
 
 ```
 python listen.py
 ```
 
-Run the main script
+### Example scripts
+
+- Main - Examples of SDK calls
 
 ```
 python main.py
+```
+
+- Price Table - Whows
+
+```
+python pricing_table.py
 ```

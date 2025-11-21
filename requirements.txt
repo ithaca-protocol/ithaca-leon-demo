@@ -1,2 +1,4 @@
 ithaca-py
 python-dotenv
+rich
+taipy
